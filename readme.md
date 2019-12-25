@@ -3,4 +3,8 @@ ____
 
 (under contruction)
 
-Implementation of the research paper: **Effectiveness of Cross-Domain Architectures for Whisper-to-Normal Speech Conversion** [[Link]](https://ieeexplore.ieee.org/abstract/document/8902961)
+Implementation of the following research papers: 
+
+- **Novel Inception-GAN for Whisper-to-Normal Speech Conversion** [[Link]](https://www.isca-speech.org/archive/SSW_2019/abstracts/SSW10_P_1-9.html) 
+
+- **Effectiveness of Cross-Domain Architectures for Whisper-to-Normal Speech Conversion** [[Link]](https://ieeexplore.ieee.org/abstract/document/8902961)
