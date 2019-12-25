@@ -1,6 +1,6 @@
 clc; clear all; close all;
 
-load_path_mask = '../results/mask/mcc';
+load_path_mask = '../Results/mask/mcc';
 load_path_normal_mcc = '../dataset/features/US_102/Normal/mcc/';
 save_path_mcc = '../Results/mcc/';
 save_data = '../Results/';
