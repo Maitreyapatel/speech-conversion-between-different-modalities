@@ -1,6 +1,7 @@
 import numpy as np
 from os import listdir, makedirs, getcwd, remove
 from os.path import isfile, join, abspath, exists, isdir, expanduser
+
 import torch
 from torch.autograd import Variable
 import torch.nn as nn
@@ -24,7 +25,7 @@ from scipy.io import loadmat
 
 from dataloaders import parallel_dataloader
 from networks import dnn_generator, dnn_discriminator
-
+from utils import *
 
 # Connect with Visdom for the loss visualization
 viz = visdom.Visdom()
@@ -186,9 +187,7 @@ def do_testing():
     for i in dirs:
         
         # Load the .mcc file
-        d = np.fromfile(join(test_folder_path, i),dtype=np.float32)
-        d = np.reshape(d, (40, d.size//40), order='F')
-        d = np.transpose(d)
+        d = read_mcc(join(test_folder_path, i))
 
         a = torch.from_numpy(d['Feat'])
         a = Variable(a.squeeze(0).type('torch.FloatTensor')).cuda()
@@ -202,18 +201,6 @@ def do_testing():
 Check MCD value on validation data for now! :)
 '''
 
-def logSpecDbDist(x,y):
-    
-    size = x.shape[0]
-    assert y.shape[0] == size
-
-    sumSqDiff = 0.0
-    for k in range(len(x)):
-        diff = x[k] - y[k]
-        sumSqDiff += diff * diff
-
-    dist = np.sqrt(sumSqDiff*2)*(10/np.log(10))
-    return dist
 
 def give_MCD():
     Gnet = torch.load(join(checkpoint,"gen_Ep_100.pth"))
@@ -232,3 +219,9 @@ def give_MCD():
 
     mcd = np.array(mcd)
     print(np.mean(mcd))
+
+
+if __name__ == '__main__':
+    do_training()
+    do_testing()
+    give_MCD()
