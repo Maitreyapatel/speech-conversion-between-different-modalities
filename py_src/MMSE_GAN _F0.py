@@ -31,8 +31,8 @@ from utils import *
 viz = visdom.Visdom()
 
 # Path where you want to store your results        
-mainfolder = "../dataset/features/US_102/batches/mcc/"
-checkpoint = "../results/checkpoints/mcc/"
+mainfolder = "../dataset/features/US_102/batches/f0/"
+checkpoint = "../results/checkpoints/f0/"
 
 # Training Data path
 traindata = parallel_dataloader(folder_path=mainfolder)
@@ -49,8 +49,8 @@ adversarial_loss = nn.BCELoss()
 mmse_loss = nn.MSELoss()
 
 ip_g = 40 # MCEP feature dimentions
-op_g = 40 # MCEP feature dimentions
-ip_d = 40 # MCEP feature dimentions
+op_g = 1 # F0 feature dimentions
+ip_d = 1 # MCEP feature dimentions
 op_d = 1
 
 
@@ -179,8 +179,8 @@ Testing on training dataset as of now. Later it will be modified according to th
 
 def do_testing():
     print("Testing")
-    save_folder = "../results/mask/mcc"
-    test_folder_path="../dataset/features/batches/mcc"  # Change the folder path to testing directory. (Later)
+    save_folder = "../results/mask/f0"
+    test_folder_path="../dataset/features/batches/f0"  # Change the folder path to testing directory. (Later)
     dirs = listdir(test_folder_path)
     Gnet = torch.load(join(mainfolder,"gen_ws_Ep_100.pth"))
 
@@ -197,31 +197,6 @@ def do_testing():
         savemat(join(save_folder,'{}.mat'.format(i[:-4])),  mdict={'foo': Gout.cpu().data.numpy()})
 
 
-'''
-Check MCD value on validation data for now! :)
-'''
-
-
-def give_MCD():
-    Gnet = torch.load(join(checkpoint,"gen_Ep_100.pth"))
-    mcd = []
-
-    for en, (a, b) in enumerate(val_dataloader):
-        a = Variable(a.squeeze(0).type(torch.FloatTensor)).cuda()
-        b = b.cpu().data.numpy()[0]
-
-        Gout = Gnet(a).cpu().data.numpy()
-
-        ans = 0
-        for k in range(Gout.shape[0]):
-            ans = logSpecDbDist(Gout[k][1:],b[k][1:])
-            mcd.append(ans)
-
-    mcd = np.array(mcd)
-    print(np.mean(mcd))
-
-
 if __name__ == '__main__':
     do_training()
     do_testing()
-    give_MCD()

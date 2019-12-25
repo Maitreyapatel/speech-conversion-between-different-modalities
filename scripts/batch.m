@@ -38,7 +38,7 @@ for k=1:n
     %fprintf('m = %i',m)
     %fprintf('   temp = %i\n',temp)
 
-    save(['../dataset/features/US_102/batches/Batch_',num2str(temp),'.mat'],'Feat');    
+    save(['../dataset/features/US_102/batches/mcc/Batch_',num2str(temp),'.mat'],'Feat');    
     fprintf('Batch_%i created\n',temp);
         
     m = m + 1000;
@@ -54,7 +54,7 @@ if rem>700
 
     k = k + 1;
  
-    save(['../dataset/features/US_102/batches/Batch_',num2str(temp),'.mat'],'Feat');
+    save(['../dataset/features/US_102/batches/mcc/Batch_',num2str(temp),'.mat'],'Feat');
     fprintf('Batch_%i created\n',temp);
     
 end
