@@ -139,7 +139,7 @@ def validating(data_loader):
 
 
 def do_training():
-    epoch = 100
+    epoch = 5
     dl_arr = []
     gl_arr = []
     for ep in range(epoch):
@@ -179,18 +179,18 @@ Testing on training dataset as of now. Later it will be modified according to th
 
 def do_testing():
     print("Testing")
-    save_folder = "../results/mask/mcc"
-    test_folder_path="../dataset/features/batches/mcc"  # Change the folder path to testing directory. (Later)
+    save_folder = "../results/mask/mcc/"
+    test_folder_path="../dataset/features/US_102/Whisper/mcc/"  # Change the folder path to testing directory. (Later)
     dirs = listdir(test_folder_path)
-    Gnet = torch.load(join(mainfolder,"gen_ws_Ep_100.pth"))
+    Gnet = torch.load(join(checkpoint,"gen_Ep_5.pth")).to(device)
 
     for i in dirs:
         
         # Load the .mcc file
         d = read_mcc(join(test_folder_path, i))
 
-        a = torch.from_numpy(d['Feat'])
-        a = Variable(a.squeeze(0).type('torch.FloatTensor')).cuda()
+        a = torch.from_numpy(d)
+        a = Variable(a.squeeze(0).type('torch.FloatTensor')).to(device)
         
         Gout = Gnet(a)
 
@@ -203,11 +203,11 @@ Check MCD value on validation data for now! :)
 
 
 def give_MCD():
-    Gnet = torch.load(join(checkpoint,"gen_Ep_100.pth"))
+    Gnet = torch.load(join(checkpoint,"gen_Ep_5.pth")).to(device)
     mcd = []
 
     for en, (a, b) in enumerate(val_dataloader):
-        a = Variable(a.squeeze(0).type(torch.FloatTensor)).cuda()
+        a = Variable(a.squeeze(0).type(torch.FloatTensor)).to(device)
         b = b.cpu().data.numpy()[0]
 
         Gout = Gnet(a).cpu().data.numpy()
