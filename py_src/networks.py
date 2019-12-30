@@ -70,3 +70,32 @@ class dnn_discriminator(nn.Module):
         y = F.relu(self.fc3(y))
         y = F.sigmoid(self.out(y))
         return y
+
+
+class dnn(nn.Module):
+    
+    def weight_init(self):
+        nn.init.xavier_uniform_(self.fc1.weight)
+        nn.init.xavier_uniform_(self.fc2.weight)
+        nn.init.xavier_uniform_(self.fc3.weight)
+        nn.init.xavier_uniform_(self.out.weight)
+
+    def __init__(self, G_in, G_out, w1, w2, w3):
+        super(dnn, self).__init__()
+        
+        self.fc1= nn.Linear(G_in, w1)
+        self.fc2= nn.Linear(w1, w2)
+        self.fc3= nn.Linear(w2, w3)
+        self.out= nn.Linear(w3, G_out)
+
+        # self.weight_init()
+        
+    def forward(self, x):
+        
+        # x = x.view(x.size(0), -1)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
+        x = F.sigmoid(self.out(x))
+        # x = x.view(1, 1, 1000, 25)
+        return x
