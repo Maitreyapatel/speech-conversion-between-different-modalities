@@ -99,29 +99,32 @@ def validating(data_loader):
 
 
 def do_training():
-    epoch = args.e
+    epoch = args.epoch
 
     dl_arr = []
     gl_arr = []
     for ep in range(epoch):
 
         training(train_dataloader, ep+1)
-        if (ep+1)%args.vi==0:
+        if (ep+1)%args.checkpoint_interval==0:
             torch.save(Gnet, join(checkpoint,"gen_Ep_{}.pth".format(ep+1)))
             torch.save(Dnet, join(checkpoint,"dis_Ep_{}.pth".format(ep+1)))
-        dl,gl = validating(val_dataloader)
-        
-        print("D_loss: " + str(dl) + " G_loss: " + str(gl))
-        
-        dl_arr.append(dl)
-        gl_arr.append(gl)
-        
-        if ep == 0:
-            gplot = viz.line(Y=np.array([gl]), X=np.array([ep]), opts=dict(title='Generator'))
-            dplot = viz.line(Y=np.array([dl]), X=np.array([ep]), opts=dict(title='Discriminator'))
-        else:
-            viz.line(Y=np.array([gl]), X=np.array([ep]), win=gplot, update='append')
-            viz.line(Y=np.array([dl]), X=np.array([ep]), win=dplot, update='append')
+
+
+        if (ep+1)%args.validation_interval==0:
+            dl,gl = validating(val_dataloader)
+            
+            print("D_loss: " + str(dl) + " G_loss: " + str(gl))
+            
+            dl_arr.append(dl)
+            gl_arr.append(gl)
+            
+            if ep == 0:
+                gplot = viz.line(Y=np.array([gl]), X=np.array([ep]), opts=dict(title='Generator'))
+                dplot = viz.line(Y=np.array([dl]), X=np.array([ep]), opts=dict(title='Discriminator'))
+            else:
+                viz.line(Y=np.array([gl]), X=np.array([ep]), win=gplot, update='append')
+                viz.line(Y=np.array([dl]), X=np.array([ep]), win=dplot, update='append')
 
             
     savemat(checkpoint+"/"+str('discriminator_loss.mat'),  mdict={'foo': dl_arr})
@@ -143,11 +146,11 @@ Testing on training dataset as of now. Later it will be modified according to th
 
 def do_testing():
     print("Testing")
-    save_folder = args.sf
-    test_folder_path=args.tf
+    save_folder = args.save_folder
+    test_folder_path=args.test_folder
 
     dirs = listdir(test_folder_path)
-    Gnet = torch.load(join(checkpoint,"gen_Ep_{}.pth".format(args.et))).to(device)
+    Gnet = torch.load(join(checkpoint,"gen_Ep_{}.pth".format(args.test_epoch))).to(device)
 
     for i in dirs:
         
@@ -168,7 +171,7 @@ Check MCD value on validation data for now! :)
 
 
 def give_MCD():
-    Gnet = torch.load(join(checkpoint,"gen_Ep_{}.pth".format(args.et))).to(device)
+    Gnet = torch.load(join(checkpoint,"gen_Ep_{}.pth".format(args.test_epoch))).to(device)
     mcd = []
 
     for en, (a, b) in enumerate(val_dataloader):
@@ -191,9 +194,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Training methodology for Whisper-to-Normal Speech Conversion")
     parser.add_argument("-np", "--nonparallel", type=bool, default=False, help="Parallel training or non-parallel?")
     parser.add_argument("-dc", "--dnn_cnn", type=str, default='dnn', help="DNN or CNN architecture for generator and discriminator?")
-    parser.add_argument("-tr", "--train", type=bool, default=True, help="Want to train?")
-    parser.add_argument("-te", "--test", type=bool, default=True, help="Want to test?")
-    parser.add_argument("-m", "--mcd", type=bool, default=True, help="Want MCD value?")
+    parser.add_argument("-tr", "--train", action="store_true", help="Want to train?")
+    parser.add_argument("-te", "--test", action="store_true", help="Want to test?")
+    parser.add_argument("-m", "--mcd", action="store_true", help="Want MCD value?")
     parser.add_argument("-ci", "--checkpoint_interval", type=int, default=5, help="Checkpoint interval")
     parser.add_argument("-e", "--epoch", type=int, default=100, help="Number of Epochs")
     parser.add_argument("-et", "--test_epoch", type=int, default=100, help="Epochs to test")
@@ -212,11 +215,11 @@ if __name__ == '__main__':
     viz = visdom.Visdom()
 
     # Path where you want to store your results        
-    mainfolder = args.mf
-    checkpoint = args.cf
+    mainfolder = args.mainfolder
+    checkpoint = args.checkpoint_folder
 
     # Training Data path
-    if args.np:
+    if args.nonparallel:
         custom_dataloader = non_parallel_dataloader
     else:
         custom_dataloader = parallel_dataloader
@@ -247,18 +250,18 @@ if __name__ == '__main__':
         device = 'cpu'
 
     # Initialization
-    if args.dc == "dnn":
+    if args.dnn_cnn == "dnn":
         Gnet = dnn_generator(ip_g, op_g, 512, 512, 512).to(device)
         Dnet = dnn_discriminator(ip_d, op_d, 512, 512, 512).to(device)
 
 
     # Initialize the optimizers
-    optimizer_G = torch.optim.Adam(Gnet.parameters(), lr=args.lr)
-    optimizer_D = torch.optim.Adam(Dnet.parameters(), lr=args.lr)
+    optimizer_G = torch.optim.Adam(Gnet.parameters(), lr=args.learning_rate)
+    optimizer_D = torch.optim.Adam(Dnet.parameters(), lr=args.learning_rate)
 
-    if args.tr:
+    if args.train:
         do_training()
-    if args.te:
+    if args.test:
         do_testing()
-    if args.m:
+    if args.mcd:
         give_MCD()
