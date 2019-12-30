@@ -139,7 +139,7 @@ def validating(data_loader):
 
 
 def do_training():
-    epoch = 100
+    epoch = 5
     dl_arr = []
     gl_arr = []
     for ep in range(epoch):
@@ -182,7 +182,7 @@ def do_testing():
     save_folder = "../results/mask/f0"
     test_folder_path="../dataset/features/batches/f0"  # Change the folder path to testing directory. (Later)
     dirs = listdir(test_folder_path)
-    Gnet = torch.load(join(mainfolder,"gen_ws_Ep_100.pth"))
+    Gnet = torch.load(join(mainfolder,"gen_ws_Ep_5.pth"))
 
     for i in dirs:
         
