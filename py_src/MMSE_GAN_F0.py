@@ -180,17 +180,17 @@ Testing on training dataset as of now. Later it will be modified according to th
 def do_testing():
     print("Testing")
     save_folder = "../results/mask/f0"
-    test_folder_path="../dataset/features/batches/f0"  # Change the folder path to testing directory. (Later)
+    test_folder_path="../results/mask/mcc"  # Change the folder path to testing directory. (Later)
     dirs = listdir(test_folder_path)
-    Gnet = torch.load(join(mainfolder,"gen_ws_Ep_5.pth"))
+    Gnet = torch.load(join(checkpoint,"gen_Ep_5.pth")).to(device)
 
     for i in dirs:
         
-        # Load the .mcc file
-        d = read_mcc(join(test_folder_path, i))
+        # Load the .mat file
+        d = read_mat(join(test_folder_path, i))
 
-        a = torch.from_numpy(d['Feat'])
-        a = Variable(a.squeeze(0).type('torch.FloatTensor')).cuda()
+        a = torch.from_numpy(d['foo'])
+        a = Variable(a.type('torch.FloatTensor')).to(device)
         
         Gout = Gnet(a)
 

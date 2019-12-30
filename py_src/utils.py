@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.io import loadmat
 
 def logSpecDbDist(x,y):
     
@@ -18,4 +19,8 @@ def read_mcc(path):
     d = np.reshape(d, (40, d.size//40), order='F')
     d = np.transpose(d)
 
+    return d
+
+def read_mat(path):
+    d = loadmat(path)
     return d
