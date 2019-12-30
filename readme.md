@@ -6,9 +6,9 @@ ____
 
 - [x] Feature extraction
 - [x] Python scripts for MCC training
-- [ ] Python scripts for F0 training
-- [ ] Python scripts for VUV training
-- [ ] Matlab scripts for objective measures
+- [x] Python scripts for F0 training
+- [x] Python scripts for VUV training
+- [x] Matlab scripts for objective measures
 - [ ] Synthesis using Ahocoder
 - [ ] Single shell script for complete automation
 
