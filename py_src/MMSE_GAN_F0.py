@@ -221,7 +221,7 @@ if __name__ == '__main__':
         device = 'cpu'
 
     # Initialization 
-    if args.dnn_cnn:
+    if args.dnn_cnn == "dnn":
         Gnet = dnn_generator(ip_g, op_g, 512, 512, 512).to(device)
         Dnet = dnn_discriminator(ip_d, op_d, 512, 512, 512).to(device)
 
