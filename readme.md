@@ -9,9 +9,11 @@ ____
 - [x] Python scripts for F0 training
 - [x] Python scripts for VUV training
 - [x] Matlab scripts for objective measures
-- [ ] Synthesis using Ahocoder
-- [ ] Single shell script for complete automation
-
+- [x] Synthesis using Ahocoder
+- [x] Single shell script for complete automation
+- [ ] **Check the the whole repository for reproducibility.**
+- [ ] Make the whole documentation.
+- [ ] Add python scripts for DiscoGAN, CycleGAN, DC-GAN, Inception-GAN.
 
 
 ## Implementation of the following research papers: 
