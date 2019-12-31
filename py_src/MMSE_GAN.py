@@ -225,12 +225,12 @@ if __name__ == '__main__':
         custom_dataloader = parallel_dataloader
 
     traindata = custom_dataloader(folder_path=mainfolder)
-    train_dataloader = DataLoader(dataset=traindata, batch_size=1, shuffle=True, num_workers=2)  # For windows keep num_workers = 0
+    train_dataloader = DataLoader(dataset=traindata, batch_size=1, shuffle=True, num_workers=0)  # For windows keep num_workers = 0
 
 
     # Path for validation data
     valdata = custom_dataloader(folder_path=mainfolder)
-    val_dataloader = DataLoader(dataset=valdata, batch_size=1, shuffle=True, num_workers=2)  # For windows keep num_workers = 0
+    val_dataloader = DataLoader(dataset=valdata, batch_size=1, shuffle=True, num_workers=0)  # For windows keep num_workers = 0
 
 
     # Loss Functions
@@ -245,7 +245,7 @@ if __name__ == '__main__':
 
     # Check for Cuda availability
     if torch.cuda.is_available():
-        decive = 'cuda:0'
+        device = 'cuda:0'
     else:
         device = 'cpu'
 
