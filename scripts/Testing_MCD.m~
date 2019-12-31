@@ -1,9 +1,9 @@
 clc; clear all; close all;
 
-load_path_mask = '../results/mask/mcc/';
+load_path_mask = '../Results/mask/mcc/';
 load_path_normal_mcc = '../dataset/features/US_102/Normal/mcc/';
-save_path_mcc = '../results/mcc/';
-save_data = '../results/';
+save_path_mcc = '../Results/mcc/';
+save_data = '../Results/';
 
 filelist1=dir([load_path_normal_mcc,'*.mcc']);
 filelist2=dir([load_path_mask,'*.mat']);
@@ -15,7 +15,7 @@ for index=1:length(filelist1)
     display(length(x));
     cx=reshape(x,40,length(x)/40);
     
-    load([load_path_mask,filelist2(index).name]);
+    load([load_path_mask,filelist1(),'.mat']);
     y=foo';
 
     %fid1=fopen(['/home/maitreya/WHISPER2SPEECH/WHSP2SPCH/gan/rect_150/converted_mcep/',filelist1(index).name]);
