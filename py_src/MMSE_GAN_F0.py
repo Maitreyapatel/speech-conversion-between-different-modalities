@@ -185,8 +185,8 @@ if __name__ == '__main__':
     viz = visdom.Visdom()
 
     # Path where you want to store your results        
-    mainfolder = args.mf
-    checkpoint = args.cf
+    mainfolder = args.mainfolder
+    checkpoint = args.checkpoint_folder
 
     # Training Data path
     if args.nonparallel:

@@ -103,7 +103,7 @@ Testing on training dataset as of now. Later it will be modified according to th
 
 def do_testing():
     print("Testing")
-    save_folder = args.save
+    save_folder = args.save_folder
     test_folder_path = args.test_folder
     dirs = listdir(test_folder_path)
     net = torch.load(join(checkpoint,"net_Ep_{}.pth".format(args.test_epoch))).to(device)
