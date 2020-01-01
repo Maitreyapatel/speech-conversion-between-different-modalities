@@ -15,6 +15,13 @@ ____
 - [x] Make the whole documentation.
 - [ ] Add python scripts for DiscoGAN, CycleGAN, DC-GAN, Inception-GAN.
 
+## Prerequisites:
+
+- Linux, MacOS
+- Python 3
+- CPU or NVIDIA GPU + CUDA CuDNN
+- SoX (Command line utility that can convert various formats of computer audio files in to other formats.)
+- MatLab
 
 
 ### Before going ahead please create the two directories (dataset and results) with follwing sctructre:
@@ -60,6 +67,22 @@ results
 |
 └───tmp
 
+```
+
+## Required Python libraries:
+
+```
+torchvision==0.2.1
+visdom==0.1.8.8
+matplotlib==3.1.2
+numpy==1.17.4
+scipy==1.3.2
+torch==1.3.1
+```
+These libraries can be installed via following command:
+
+```
+pip install -r requirements.txt
 ```
 
 
