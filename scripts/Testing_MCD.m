@@ -7,7 +7,7 @@ save_data = '../results/';
 
 filelist1=dir([load_path_normal_mcc,'*.mcc']);
 filelist2=dir([load_path_mask,'*.mat']);
-x=[];y=[];cx=[];mcd=[];C=[];
+x=[];y=[];cx=[];mcd=[];C=[];tr=[];
 for index=1:length(filelist1)
     fprintf('Processing %s\n',filelist1(index).name); 
     fid=fopen([load_path_normal_mcc,filelist1(index).name]);

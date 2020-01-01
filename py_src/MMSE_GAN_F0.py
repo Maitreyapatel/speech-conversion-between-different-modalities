@@ -216,7 +216,7 @@ if __name__ == '__main__':
 
     # Check for Cuda availability
     if torch.cuda.is_available():
-        decive = 'cuda:0'
+        device = 'cuda:0'
     else:
         device = 'cpu'
 
