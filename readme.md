@@ -11,7 +11,7 @@ ____
 - [x] Matlab scripts for objective measures
 - [x] Synthesis using Ahocoder
 - [x] Single shell script for complete automation
-- [ ] **Check the the whole repository for reproducibility.**
+- [x] Check the the whole repository for reproducibility.
 - [x] Make the whole documentation.
 - [ ] Add python scripts for DiscoGAN, CycleGAN, DC-GAN, Inception-GAN.
 
@@ -71,6 +71,17 @@ For whisper-to-normal speech conversion, we rely on wTIMIT dataset. Please downl
     - `sox {path + file1.wav} -t -wav {path + file1.wav}` (Only if downloaded files has .WAV extention.)
     - `sox {path + file1.wav} -r 16000 -c 1 -b 16 {path + file1.wav}`
     
+# Now, do the training for WHSP2SPCH conversion:
+
+Either run the follwing single shell script or follow the steps described below:
+
+```
+./run.sh
+```
+
+**OR Follow these steps**
+
+
 ## Feature extraction:
 
 Now, run follwing commads in the terminal:
@@ -112,8 +123,35 @@ Finally, we are at the last stage. We will use converted mcc and predicted F0 fe
 
 1. `./synthesis.sh`
 
-## Implementation of the following research papers: 
+## Reference Papers: 
 
 - **Novel Inception-GAN for Whisper-to-Normal Speech Conversion** [[Link]](https://www.isca-speech.org/archive/SSW_2019/abstracts/SSW10_P_1-9.html) 
 
 - **Effectiveness of Cross-Domain Architectures for Whisper-to-Normal Speech Conversion** [[Link]](https://ieeexplore.ieee.org/abstract/document/8902961)
+
+- **Novel mmse discogan for cross-domain whisper-to-speech conversion** [[Link]](https://drive.google.com/file/d/1UVbXRzpaM1_ayaTfvq92RVijn_M8FLnn/view)
+
+## Citation:
+
+If you use this code for your research, please cite our papers.
+
+```
+@inproceedings{parmar2019effectiveness,
+  title={Effectiveness of Cross-Domain Architectures for Whisper-to-Normal Speech Conversion},
+  author={Parmar, Mihir and Doshi, Savan and Shah, Nirmesh J and Patel, Maitreya and Patil, Hemant A},
+  booktitle={2019 27th European Signal Processing Conference (EUSIPCO)},
+  pages={1--5},
+  year={2019},
+  organization={IEEE}
+}
+
+@inproceedings{Patel2019,
+  author={Maitreya Patel and Mihir Parmar and Savan Doshi and Nirmesh Shah and Hemant Patil},
+  title={{Novel Inception-GAN for Whispered-to-Normal Speech Conversion}},
+  year=2019,
+  booktitle={Proc. 10th ISCA Speech Synthesis Workshop},
+  pages={87--92},
+  doi={10.21437/SSW.2019-16},
+  url={http://dx.doi.org/10.21437/SSW.2019-16}
+}
+```
