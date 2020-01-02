@@ -144,7 +144,7 @@ def do_training():
 
         training(train_dataloader, ep+1)
         if (ep+1)%args.checkpoint_interval==0:
-            torch.save(Gnet_ws, join(mainfolder,"gen_ws_Ep_{}.pth".format(ep+1)))
+            torch.save(Gnet_ws, join(checkpoint,"gen_ws_Ep_{}.pth".format(ep+1)))
         
         if (ep+1)%args.validation_interval==0:
             dl,gl = validating(val_dataloader)
@@ -181,7 +181,7 @@ def do_testing():
     save_folder = args.save_folder
     test_folder_path = args.test_folder
     dirs = listdir(test_folder_path)
-    Gnet = torch.load(join(checkpoint,"gen_Ep_{}.pth".format(args.test_epoch))).to(device)
+    Gnet = torch.load(join(checkpoint,"gen_ws_Ep_{}.pth".format(args.test_epoch))).to(device)
 
     for i in dirs:
         

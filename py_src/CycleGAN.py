@@ -46,53 +46,95 @@ def training(data_loader, n_epochs):
         valid = Variable(Tensor(a.shape[0], 1).fill_(1.0), requires_grad=False).to(device)
         fake = Variable(Tensor(a.shape[0], 1).fill_(0.0), requires_grad=False).to(device)
         
-        # Update G network
+        ###### Generators W2S and S2W ######
         optimizer_G.zero_grad()
-        Gout_s = Gnet_ws(a)
-        Gout_w = Gnet_sw(b)
-        Gout_rec_w = Gnet_sw(Gout_s)
-        Gout_rec_s = Gnet_ws(Gout_w)
         
-        # Reconstruction Loss
-        G_re_loss_w = mmse_loss(Gout_rec_w, a)
-        G_re_loss_s = mmse_loss(Gout_rec_s, b)
+        # Identity loss
+        # G_W2S(S) should equal S if real S is fed
+        same_s = Gnet_ws(b)
+        loss_identity_s = criterion_identity(same_s, b)*5.0
+        # G_S2W(W) should equal W if real W is fed
+        same_w = Gnet_sw(a)
+        loss_identity_w = criterion_identity(same_w, a)*5.0
+
+        # GAN loss
+        Gout_ws = Gnet_ws(a)
+        loss_GAN_W2S = criterion_GAN(Dnet_s(Gout_ws), valid)
         
-        G_loss_ws = adversarial_loss(Dnet_s(Gout_s), valid) + mmse_loss(Gout_s, b) + G_re_loss_w
-        G_loss_sw = adversarial_loss(Dnet_w(Gout_w), valid) + mmse_loss(Gout_w, a) + G_re_loss_s
+        Gout_sw = Gnet_sw(b)
+        loss_GAN_S2W = criterion_GAN(Dnet_w(Gout_sw), valid)
         
-        G_loss = G_loss_ws + G_loss_sw
+        # Cycle loss
+        recovered_W = Gnet_sw(Gout_ws)
+        loss_cycle_WSW = criterion_cycle(recovered_W, a)*10.0
         
-        G_loss.backward()
+        recovered_S = Gnet_ws(Gout_sw)
+        loss_cycle_SWS = criterion_cycle(recovered_S, b)*10.0
+        
+        # Total loss
+        loss_G =  loss_identity_w + loss_identity_s + loss_GAN_W2S + loss_GAN_S2W + loss_cycle_WSW + loss_cycle_SWS
+        loss_G.backward()
+        
         optimizer_G.step()
 
-
-        # Update D network
-        optimizer_D.zero_grad()
-
-        # Measure discriminator's ability to classify real from generated samples
-        real_loss_s = adversarial_loss(Dnet_s(b), valid)
-        fake_loss_s = adversarial_loss(Dnet_s(Gout_s.detach()), fake)
-        D_loss_s = (real_loss_s + fake_loss_s) / 2
-        
-        real_loss_w = adversarial_loss(Dnet_w(a), valid)
-        fake_loss_w = adversarial_loss(Dnet_w(Gout_w.detach()), fake)
-        D_loss_w = (real_loss_w + fake_loss_w) / 2
-
-        D_loss = D_loss_w + D_loss_s
-
-        D_loss.backward()
-        optimizer_D.step()
         
         
-        print ("[Epoch: %d] [Iter: %d/%d] [D loss: %f] [G loss: %f]" % (n_epochs, en, len(data_loader), D_loss, G_loss.cpu().data.numpy()))
+#        Gout = Gnet(a)
+#        G_loss = adversarial_loss(Dnet(Gout), valid) + mmse_loss(Gout, b)*10
+#
+#        G_loss.backward()
+#        optimizer_G.step()
+        
+        
+        ###### Discriminator W ######
+        optimizer_D_w.zero_grad()
 
+        # Real loss
+        loss_D_real = criterion_GAN(Dnet_w(a), valid)
+        
+        # Fake loss
+        loss_D_fake = criterion_GAN(Dnet_w(Gout_sw.detach()), fake)
+        
+        # Total loss
+        loss_D_w = (loss_D_real + loss_D_fake)*0.5
+        loss_D_w.backward()
+        
+        optimizer_D_w.step()
+        
+        ###################################
+        
+        ###### Discriminator B ######
+        optimizer_D_s.zero_grad()
+        
+        # Real loss
+        loss_D_real = criterion_GAN(Dnet_s(b), valid)
+        
+        # Fake loss
+        loss_D_fake = criterion_GAN(Dnet_s(Gout_ws.detach()), fake)
+        
+        # Total loss
+        loss_D_s = (loss_D_real + loss_D_fake)*0.5
+        loss_D_s.backward()
+        
+        optimizer_D_s.step()
+        ###################################
+        
+        
+
+        # D_loss = 0
+
+        #D_running_loss = 0
+        #D_running_loss += D_loss.item()
+        
+        print ("[Epoch: %d] [Iter: %d/%d] [D_S loss: %f] [D_W loss: %f] [G loss: %f]" % (n_epochs, en, len(data_loader), loss_D_s, loss_D_w, loss_G.cpu().data.numpy()))
+    
 
 # Validation function
 def validating(data_loader):
     Gnet_ws.eval()
     Gnet_sw.eval()
-    Dnet_w.eval()
     Dnet_s.eval()
+    Dnet_w.eval()
     Grunning_loss = 0
     Drunning_loss = 0
     
@@ -103,38 +145,69 @@ def validating(data_loader):
         valid = Variable(Tensor(a.shape[0], 1).fill_(1.0), requires_grad=False).to(device)
         fake = Variable(Tensor(a.shape[0], 1).fill_(0.0), requires_grad=False).to(device)
         
-        # optimizer_G.zero_grad()
-        Gout_s = Gnet_ws(a)
-        Gout_w = Gnet_sw(b)
-        Gout_rec_w = Gnet_sw(Gout_s)
-        Gout_rec_s = Gnet_ws(Gout_w)
+        ###### Generators W2S and S2W ######
         
-        # Reconstruction Loss
-        G_re_loss_w = mmse_loss(Gout_rec_w, a)
-        G_re_loss_s = mmse_loss(Gout_rec_s, b)
+        # Identity loss
+        # G_W2S(S) should equal S if real S is fed
+        same_s = Gnet_ws(b)
+        loss_identity_s = criterion_identity(same_s, b)*5.0
+        # G_S2W(W) should equal W if real W is fed
+        same_w = Gnet_sw(a)
+        loss_identity_w = criterion_identity(same_w, a)*5.0
         
-        G_loss_ws = adversarial_loss(Dnet_s(Gout_s), valid) + mmse_loss(Gout_s, b) + G_re_loss_w
-        G_loss_sw = adversarial_loss(Dnet_w(Gout_w), valid) + mmse_loss(Gout_w, a) + G_re_loss_s
+        # GAN loss
+        Gout_ws = Gnet_ws(a)
+        loss_GAN_W2S = criterion_GAN(Dnet_s(Gout_ws), valid)
         
-        G_loss = G_loss_ws + G_loss_sw
+        Gout_sw = Gnet_sw(b)
+        loss_GAN_S2W = criterion_GAN(Dnet_w(Gout_sw), valid)
+        
+        # Cycle loss
+        recovered_W = Gnet_sw(Gout_ws)
+        loss_cycle_WSW = criterion_cycle(recovered_W, a)*10.0
+        
+        recovered_S = Gnet_ws(Gout_sw)
+        loss_cycle_SWS = criterion_cycle(recovered_S, b)*10.0
+        
+        # Total loss
+        loss_G =  loss_identity_w + loss_identity_s + loss_GAN_W2S + loss_GAN_S2W + loss_cycle_WSW + loss_cycle_SWS
 
-        Grunning_loss += G_loss.item()
-
-        # Measure discriminator's ability to classify real from generated samples
-        real_loss_s = adversarial_loss(Dnet_s(b), valid)
-        fake_loss_s = adversarial_loss(Dnet_s(Gout_s.detach()), fake)
-        D_loss_s = (real_loss_s + fake_loss_s) / 2
         
-        real_loss_w = adversarial_loss(Dnet_w(a), valid)
-        fake_loss_w = adversarial_loss(Dnet_w(Gout_w.detach()), fake)
-        D_loss_w = (real_loss_w + fake_loss_w) / 2
-
-        D_loss = D_loss_w + D_loss_s
         
-        Drunning_loss += D_loss.item()
+        ###### Discriminator W ######
+        optimizer_D_w.zero_grad()
+        
+        # Real loss
+        loss_D_real = criterion_GAN(Dnet_w(a), valid)
+        
+        # Fake loss
+        loss_D_fake = criterion_GAN(Dnet_w(Gout_sw.detach()), fake)
+        
+        # Total loss
+        loss_D_w = (loss_D_real + loss_D_fake)*0.5
+
+        
+        ###### Discriminator B ######
+        optimizer_D_s.zero_grad()
+        
+        # Real loss
+        loss_D_real = criterion_GAN(Dnet_s(b), valid)
+        
+        # Fake loss
+        loss_D_fake = criterion_GAN(Dnet_s(Gout_ws.detach()), fake)
+        
+        # Total loss
+        loss_D_s = (loss_D_real + loss_D_fake)*0.5
+ 
+        ###################################
+        loss_D = loss_D_s + loss_D_w	
+
+        Grunning_loss += loss_G.item()
+
+        Drunning_loss += loss_D.item()
         
     return Drunning_loss/(en+1),Grunning_loss/(en+1)
-
+    
 
 
 def do_training():
@@ -272,13 +345,15 @@ if __name__ == '__main__':
 
 
     # Loss Functions
-    adversarial_loss = nn.BCELoss()
-    mmse_loss = nn.MSELoss()
+    criterion_GAN = torch.nn.MSELoss()
+    criterion_cycle = torch.nn.L1Loss()
+    criterion_identity = torch.nn.L1Loss()
 
-    ip_g = 40 # MCEP feature dimentions
-    op_g = 40 # MCEP feature dimentions
-    ip_d = 40 # MCEP feature dimentions
-    op_d = 1
+    #I/O variables
+    in_g = 40
+    out_g = 40
+    in_d = 40
+    out_d = 1
 
 
     # Check for Cuda availability
@@ -289,18 +364,16 @@ if __name__ == '__main__':
 
     # Initialization
     if args.dnn_cnn == "dnn":
-        Gnet_ws = dnn_generator(ip_g, op_g, 512, 512, 512).to(device)
-        Gnet_sw = dnn_generator(ip_g, op_g, 512, 512, 512).to(device)
-        Dnet_w = dnn_discriminator(ip_d, op_d, 512, 512, 512).to(device)
-        Dnet_s = dnn_discriminator(ip_d, op_d, 512, 512, 512).to(device)
+        Gnet_ws = dnn_generator(in_g, out_g, 512, 512, 512).to(device)
+        Gnet_sw = dnn_generator(in_g, out_g, 512, 512, 512).to(device)
+        Dnet_w = dnn_discriminator(in_d, out_d, 512, 512, 512).to(device)
+        Dnet_s = dnn_discriminator(in_d, out_d, 512, 512, 512).to(device)
 
 
-    # Optimizers
-    g_params = itertools.chain(Gnet_ws.parameters(), Gnet_sw.parameters())
-    d_params = itertools.chain(Dnet_w.parameters(), Dnet_s.parameters())
-        
-    optimizer_G = torch.optim.Adam(g_params, lr=args.learning_rate)
-    optimizer_D = torch.optim.Adam(d_params, lr=args.learning_rate)
+    # Initialize the optimizers
+    optimizer_G = torch.optim.Adam(itertools.chain(Gnet_ws.parameters(), Gnet_sw.parameters()),lr=args.learning_rate, betas=(0.5, 0.999))
+    optimizer_D_w = torch.optim.Adam(Dnet_w.parameters(), lr=args.learning_rate, betas=(0.5, 0.999))
+    optimizer_D_s = torch.optim.Adam(Dnet_s.parameters(), lr=args.learning_rate, betas=(0.5, 0.999))
 
     if args.train:
         do_training()
