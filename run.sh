@@ -28,9 +28,9 @@ matlab -nodisplay -nosplash -nodesktop -r "run('/home/speechlab/Maitreya/whsp2sp
 cd ../py_src
 
 # Run python scripts for MCEP, F0, and VUV features
-python3 MMSE_GAN.py -te -te
-python3 MMSE_GAN_F0.py -te -te
-python3 DNN_VUV.py -te -te
+python3 MMSE_GAN.py -tr -te
+python3 MMSE_GAN_F0.py -tr -te
+python3 DNN_VUV.py -tr -te
 
 
 # Change the directory
