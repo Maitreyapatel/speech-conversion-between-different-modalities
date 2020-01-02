@@ -10,7 +10,7 @@ Interesting  applications  of  the  whis-pered speech communications are, privat
 
 For more details please refer mentioned research papers.
 
-### Proposed and Baseline Methods:
+### Proposed Methods:
 - MMSE-GAN
 - DiscGAN
 - CycleGAN
