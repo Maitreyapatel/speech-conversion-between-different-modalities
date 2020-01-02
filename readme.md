@@ -1,19 +1,21 @@
 # Whisper-to-Normal Speech Conversion using Generative Adversarial Networks
 ____ 
 
+### Why whisper-to-normal speech conversion?
+Interesting  applications  of  the  whis-pered speech communications are, private conversation in pub-lic using cell phone, conversation in quiet environments like alibrary, a hospital, a meeting room, etc. Furthermore, thepatients that are suffering from the vocal fold paralysis ,vocal nodule etc. may not be able to produce normalspeech  due  to  the  partial  or  complete  absence  of  vocal  foldvibrations (i.e., voicing). Losing the natural way of producingthe  speech  will  affect  one’s  life  extremely,  since  speech  isthe most natural and powerful form of communication amonghumans.  Hence,  the  aim  of  the  present  work  is  to  convertwhispered speech into normal speech using Machine Learning(ML)-based  approaches  in  order  to  improve  the  quality  ofcommunication.
 
-### Tasks:
+For more details please refer mentioned research papers.
 
-- [x] Feature extraction
-- [x] Python scripts for MCC training
-- [x] Python scripts for F0 training
-- [x] Python scripts for VUV training
-- [x] Matlab scripts for objective measures
-- [x] Synthesis using Ahocoder
-- [x] Single shell script for complete automation
-- [x] Check the the whole repository for reproducibility.
-- [x] Make the whole documentation.
-- [ ] Add python scripts for DiscoGAN, CycleGAN, DC-GAN, Inception-GAN.
+### Proposed and Baseline Methods:
+- MMSE-GAN
+- DiscGAN
+- CycleGAN
+- CNN-GAN
+- Inception-GAN
+
+
+<span style="color:red">**Note:** Demo website will be soon available.</span>
+
 
 ## Prerequisites:
 
