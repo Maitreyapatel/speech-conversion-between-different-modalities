@@ -3,6 +3,7 @@ Here, the generators and discriminators are pre-defined as per the configuration
 '''
 import numpy as np
 
+import torch
 import torch.nn as nn
 import torch.autograd as autograd
 import torch.nn.functional as F
@@ -212,3 +213,217 @@ class Print(nn.Module):
     def forward(self, x):
         print(x.shape)
         return x
+
+
+
+class inception(nn.Module):
+    
+    def __init__(self, inp, n1, n3r, n3, n5r, n5, mxp):
+        super(inception, self).__init__()
+        
+        layers = []
+        layers += [nn.Conv2d(inp, n1, 1)]
+        layers += [nn.ReLU(True)]
+        # nn.init.xavier_uniform_(layers[0].weight)
+        
+        self.one = nn.Sequential(*layers)
+        
+        layers = []
+        layers += [nn.Conv2d(inp, n3r, 1)]
+        layers += [nn.ReLU(True)]
+        layers += [nn.Conv2d(n3r, n3, 3, padding=1)]
+        layers += [nn.ReLU(True)]
+        # nn.init.xavier_uniform_(layers[0].weight)
+        # nn.init.xavier_uniform_(layers[2].weight)
+        
+        self.three = nn.Sequential(*layers)
+        
+        layers = []
+        layers += [nn.Conv2d(inp, n5r, 1)]
+        layers += [nn.ReLU(True)]
+        layers += [nn.Conv2d(n5r, n5, 3, padding=1)]
+        layers += [nn.ReLU(True)]
+        layers += [nn.Conv2d(n5, n5, 3, padding=1)]
+        layers += [nn.ReLU(True)]
+        # nn.init.xavier_uniform_(layers[0].weight)
+        # nn.init.xavier_uniform_(layers[2].weight)
+        # nn.init.xavier_uniform_(layers[4].weight)
+        
+        self.five = nn.Sequential(*layers)
+        
+        layers = []
+        
+        layers += [nn.MaxPool2d(3, 1, 1)]
+        layers += [nn.Conv2d(inp, mxp, 1)]
+        layers += [nn.ReLU(True)]
+        # nn.init.xavier_uniform_(layers[1].weight)
+        
+        self.maxp = nn.Sequential(*layers)
+        
+    def forward(self, x):
+        h1 = self.one(x)
+        h2 = self.three(x)
+        h3 = self.five(x)
+        h4 = self.maxp(x)
+        
+        h = torch.cat([h1, h2, h3, h4], 1)
+        
+        return h
+
+
+class inv_inception(nn.Module):
+    
+    def __init__(self, inp, n1, n3r, n3, n5r, n5, mxp):
+        super(inv_inception, self).__init__()
+        
+        layers = []
+        layers += [nn.ConvTranspose2d(inp, n1, 1, stride=1, padding=0, output_padding=0)]
+        layers += [nn.ReLU(True)]
+        # nn.init.xavier_uniform_(layers[0].weight)
+        
+        self.one = nn.Sequential(*layers)
+        
+        layers = []
+        layers += [nn.ConvTranspose2d(inp, n3r, 1, stride=1, padding=0, output_padding=0)]
+        layers += [nn.ReLU(True)]
+        layers += [nn.ConvTranspose2d(n3r, n3, 3, stride=1, padding=1, output_padding=0)]
+        layers += [nn.ReLU(True)]
+        # nn.init.xavier_uniform_(layers[0].weight)
+        # nn.init.xavier_uniform_(layers[2].weight)
+        
+        self.three = nn.Sequential(*layers)
+        
+        layers = []
+        layers += [nn.ConvTranspose2d(inp, n5r, 1, stride=1, padding=0, output_padding=0)]
+        layers += [nn.ReLU(True)]
+        layers += [nn.ConvTranspose2d(n5r, n5, 3, stride=1, padding=1, output_padding=0)]
+        layers += [nn.ReLU(True)]
+        layers += [nn.ConvTranspose2d(n5, n5, 3, stride=1, padding=1, output_padding=0)]
+        layers += [nn.ReLU(True)]
+        # nn.init.xavier_uniform_(layers[0].weight)
+        # nn.init.xavier_uniform_(layers[2].weight)
+        # nn.init.xavier_uniform_(layers[4].weight)
+        
+        self.five = nn.Sequential(*layers)
+        
+        layers = []
+        layers += [nn.MaxPool2d(3, 1, 1)]
+        layers += [nn.ConvTranspose2d(inp, mxp, 1, stride=1, padding=0, output_padding=0)]
+        layers += [nn.ReLU(True)]
+        # nn.init.xavier_uniform_(layers[1].weight)
+        
+        self.maxp = nn.Sequential(*layers)
+        
+    def forward(self, x):
+        h1 = self.one(x)
+        h2 = self.three(x)
+        h3 = self.five(x)
+        h4 = self.maxp(x)
+        
+        h = torch.cat([h1, h2, h3, h4], 1)
+        
+        return h
+
+
+class inception_generator(nn.Module):
+    
+    
+    def __init__(self):
+        super(inception_generator, self).__init__()
+        
+        lower_layers = []
+        self.lower_layers = nn.Sequential(*lower_layers)
+        
+        inception_layers = []
+        inception_layers += [inception(1, 32, 50, 64, 16, 32, 16)] # Out: 500x20x144
+        inception_layers += [inception(144, 64, 64, 128, 32, 64, 32)] # Out: 500x20x288
+        inception_layers += [inv_inception(288, 64, 64, 128, 32, 64, 32)] # Out: 500x20x288  ## Do enable if you want to use inverse inception
+        inception_layers += [inv_inception(288, 32, 128, 64, 64, 32, 16)] # Out: 500x20x144  ## Do chnage inception to inv_inception only keep the input values as it is if you want to use inverse inception
+        self.inception_layers = nn.Sequential(*inception_layers)
+
+        final_layers = []
+        final_layers += [nn.Conv2d(144, 1, 3, stride=1, padding=1)] # Out: 1000x40x1
+        self.final_layers = nn.Sequential(*final_layers)
+
+        
+    def forward(self, x):
+        
+        h1 = self.lower_layers(x)
+        h2 = self.inception_layers(h1)
+        return self.final_layers(h2)
+
+class inception_f0_generator(nn.Module):
+    
+    
+    def __init__(self):
+        super(inception_f0_generator, self).__init__()
+        
+        lower_layers = []
+        self.lower_layers = nn.Sequential(*lower_layers)
+        
+        inception_layers = []
+        inception_layers += [inception(1, 32, 50, 64, 16, 32, 16)] # Out: 500x20x144
+        inception_layers += [nn.MaxPool2d((1,7),(1,2))]
+        inception_layers += [inception(144, 64, 64, 128, 32, 64, 32)] # Out: 500x20x288
+        inception_layers += [nn.MaxPool2d((1,7),(1,2))]
+        inception_layers += [inception(288, 64, 64, 128, 32, 64, 32)] # Out: 500x20x288  ## Do enable if you want to use inverse inception
+        inception_layers += [nn.MaxPool2d((1,6),(1,2))]
+        inception_layers += [inception(288, 32, 128, 64, 64, 32, 16)] # Out: 500x20x144  ## Do chnage inception to inv_inception only keep the input values as it is if you want to use inverse inception
+        self.inception_layers = nn.Sequential(*inception_layers)
+
+        final_layers = []
+        final_layers += [nn.Conv2d(144, 1, 3, stride=1, padding=1)] # Out: 1000x40x1
+        self.final_layers = nn.Sequential(*final_layers)
+
+        
+    def forward(self, x):
+        
+        h1 = self.lower_layers(x)
+        h2 = self.inception_layers(h1)
+        return self.final_layers(h2)
+
+
+
+class inception_discriminator(nn.Module):
+    
+    def __init__(self):
+        super(inception_discriminator, self).__init__()
+        
+        lower_layers = []
+        lower_layers += [nn.Conv2d(1, 32, 7, 2, 3)] # Out: 500x20x32
+        lower_layers += [nn.ReLU(True)]
+        
+        self.lower_layers = nn.Sequential(*lower_layers)
+        
+        inception_layers = []
+        
+        inception_layers += [inception(32, 32, 50, 64, 16, 32, 16)] # Out: 500x20x144
+        inception_layers += [nn.AvgPool2d((25, 2), (5, 1))] # Out: 96x19x160
+
+        inception_layers += [inception(144, 64, 64, 128, 32, 64, 32)] # Out: 96x19x288
+        inception_layers += [nn.MaxPool2d(3, 2, 1)] # Out: 48x10x288
+      
+        inception_layers += [inception(288, 128, 128, 256, 32, 64, 48)]#out: 48x6x496
+        inception_layers += [nn.AvgPool2d((10,2),(6,6))]#out: 7*2*496
+        # inception_layers += [Print()]
+        
+        self.inception_layers = nn.Sequential(*inception_layers)
+        
+        final_layers = []
+        
+        final_layers += [nn.Linear(7*2*496, 1028)]
+        final_layers += [nn.ReLU(True)]
+        final_layers += [nn.Dropout(0.5)]
+        final_layers += [nn.Linear(1028, 1)]
+        final_layers += [nn.Sigmoid()]
+        
+        nn.init.xavier_uniform_(final_layers[0].weight)
+        nn.init.xavier_uniform_(final_layers[3].weight)
+
+        self.final_layers = nn.Sequential(*final_layers)
+        
+    def forward(self, x):
+        h1 = self.lower_layers(x)
+        h2 = self.inception_layers(h1)
+        h2 = h2.view(h2.size(0), -1)
+        return self.final_layers(h2)
