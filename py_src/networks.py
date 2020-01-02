@@ -99,3 +99,116 @@ class dnn(nn.Module):
         x = F.sigmoid(self.out(x))
         # x = x.view(1, 1, 1000, 25)
         return x
+
+
+class cnn_generator(nn.Module):
+    
+    
+    def __init__(self):
+        super(cnn_generator, self).__init__()
+        
+        lower_layers = []
+        self.lower_layers = nn.Sequential(*lower_layers)
+        
+        inception_layers = []
+        inception_layers += [nn.Conv2d(1, 128, 3, padding=1)]
+        inception_layers += [nn.ReLU(True)]
+        inception_layers += [nn.Conv2d(128, 256, 3, padding=1)]
+        inception_layers += [nn.ReLU(True)]
+        inception_layers += [nn.Conv2d(256, 128, 3, padding=1)]
+        inception_layers += [nn.ReLU(True)]
+        self.inception_layers = nn.Sequential(*inception_layers)
+
+        final_layers = []
+        final_layers += [nn.Conv2d(128, 1, 3, stride=1, padding=1)] # Out: 1000x40x1
+        self.final_layers = nn.Sequential(*final_layers)
+
+        
+    def forward(self, x):
+        
+        h1 = self.lower_layers(x)
+        h2 = self.inception_layers(h1)
+        return self.final_layers(h2)
+
+class cnn_f0_generator(nn.Module):
+    
+    
+    def __init__(self):
+        super(cnn_f0_generator, self).__init__()
+        
+        lower_layers = []
+        self.lower_layers = nn.Sequential(*lower_layers)
+        
+        inception_layers = []
+        inception_layers += [nn.Conv2d(1, 128, 3, padding=1)]
+        inception_layers += [nn.ReLU(True)]
+        inception_layers += [nn.MaxPool2d((1,7),(1,2))]
+        inception_layers += [nn.Conv2d(128, 256, 3, padding=1)]
+        inception_layers += [nn.ReLU(True)]
+        inception_layers += [nn.MaxPool2d((1,7),(1,2))]
+        inception_layers += [nn.Conv2d(256, 128, 3, padding=1)]
+        inception_layers += [nn.ReLU(True)]
+        inception_layers += [nn.MaxPool2d((1,6),(1,2))]
+        self.inception_layers = nn.Sequential(*inception_layers)
+
+        final_layers = []
+        final_layers += [nn.Conv2d(128, 1, 3, stride=1, padding=1)]
+        self.final_layers = nn.Sequential(*final_layers)
+
+        
+    def forward(self, x):
+        
+        h1 = self.lower_layers(x)
+        h2 = self.inception_layers(h1)
+        return self.final_layers(h2)   
+
+class cnn_discriminator(nn.Module):
+    
+    def __init__(self):
+        super(cnn_discriminator, self).__init__()
+        
+        lower_layers = []
+        lower_layers += [nn.Conv2d(1, 32, 7, 2, 3)] # Out: 500x20x32
+        lower_layers += [nn.ReLU(True)]
+        lower_layers += [nn.Conv2d(32, 64, 3, 1, 1)] # Out: 1000x25x64
+        lower_layers += [nn.ReLU(True)]
+        lower_layers += [nn.MaxPool2d(3, (3,2), 1)] # Out: 500x13x192
+        lower_layers += [nn.Conv2d(64, 128, 3, 1, 1)] # Out: 1000x25x192
+        lower_layers += [nn.ReLU(True)]
+        lower_layers += [nn.MaxPool2d(3, (4,2), 1)] # Out: 500x13x192
+        lower_layers += [nn.Conv2d(128, 256, 3, 1, 1)] # Out: 1000x25x192
+        lower_layers += [nn.ReLU(True)]
+        lower_layers += [nn.MaxPool2d(3, (3,2), 1)] # Out: 500x13x192
+        lower_layers += [nn.Conv2d(256, 256, 3, 1, 1)] # Out: 1000x25x192
+        lower_layers += [nn.ReLU(True)]
+        
+        
+        self.lower_layers = nn.Sequential(*lower_layers)
+        
+        
+        final_layers = []
+        
+        final_layers += [nn.Linear(3*14*256, 1028)]
+        final_layers += [nn.ReLU(True)]
+        final_layers += [nn.Dropout(0.5)]
+        final_layers += [nn.Linear(1028, 1)]
+        final_layers += [nn.Sigmoid()]
+        
+        nn.init.xavier_uniform_(final_layers[0].weight)
+        nn.init.xavier_uniform_(final_layers[3].weight)
+
+        self.final_layers = nn.Sequential(*final_layers)
+        
+    def forward(self, x):
+        h1 = self.lower_layers(x)
+        h2 = h1.view(h1.size(0), -1)
+        return self.final_layers(h2)
+
+
+class Print(nn.Module):
+    def __init__(self):
+        super(Print, self).__init__()
+
+    def forward(self, x):
+        print(x.shape)
+        return x
