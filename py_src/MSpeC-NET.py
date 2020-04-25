@@ -282,22 +282,42 @@ Check MCD value on validation data for now! :)
 
 
 def give_MCD():
-    Gnet = torch.load(join(checkpoint,"gen_ws_Ep_{}.pth".format(args.test_epoch))).to(device)
-    mcd = []
+    
+    enc1 = torch.load(join(checkpoint,"enc_whp_Ep_{}.pth".format(args.test_epoch))).to(device)
+    dec1 = torch.load(join(checkpoint,"dec_sph_Ep_{}.pth".format(args.test_epoch))).to(device)
 
-    for en, (a, b) in enumerate(val_dataloader):
+    enc2 = torch.load(join(checkpoint,"enc_nam_Ep_{}.pth".format(args.test_epoch))).to(device)
+    dec2 = torch.load(join(checkpoint,"dec_sph_Ep_{}.pth".format(args.test_epoch))).to(device)
+
+    enc3 = torch.load(join(checkpoint,"enc_nam_Ep_{}.pth".format(args.test_epoch))).to(device)
+    dec3 = torch.load(join(checkpoint,"dec_whp_Ep_{}.pth".format(args.test_epoch))).to(device)
+
+
+    mcd_whsp2spch = []
+    mcd_nam2whsp = []
+
+    print("As of now MCD calculation relies upon the available parallel data. Hence, here, we calculat MCD for whsp2spch and nam2whsp conversions.")
+
+    for en, (a, b, c, d) in enumerate(val_dataloader):
         a = Variable(a.squeeze(0).type(torch.FloatTensor)).to(device)
         b = b.cpu().data.numpy()[0]
 
-        Gout = Gnet(a).cpu().data.numpy()
+        c = Variable(c.squeeze(0).type(torch.FloatTensor)).to(device)
+        d = d.cpu().data.numpy()[0]
+
+        Gout1 = dec3(enc3(a)).cpu().data.numpy()
+        Gout2 = dec1(enc1(c)).cpu().data.numpy()
 
         ans = 0
-        for k in range(Gout.shape[0]):
-            ans = logSpecDbDist(Gout[k][1:],b[k][1:])
-            mcd.append(ans)
+        for k in range(Gout1.shape[0]):
+            ans = logSpecDbDist(Gout1[k][1:],b[k][1:])
+            mcd_nam2whsp.append(ans)
+            ans = logSpecDbDist(Gout2[k][1:],b[k][1:])
+            mcd_whsp2spch.append(ans)
 
-    mcd = np.array(mcd)
-    print(np.mean(mcd))
+    mcd_whsp2spch = np.array(mcd_whsp2spch)
+    mcd_nam2whsp = np.array(mcd_nam2whsp)
+    print("MCD Scores: WHSP2SPCH={}\tNAM2WHSP={}".format(np.mean(mcd_whsp2spch), np.mean(mcd_nam2whsp)))
 
 
 if __name__ == '__main__':
