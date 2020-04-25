@@ -115,8 +115,7 @@ def training(data_loader, n_epochs):
         Dnet_whp_loss.backward()
         optimizer_D_w.step()
 
-        print ("[Epoch: %d] [Iter:%d/%d] [Autoen: %f] [Dis_sph: %f] [Dis_wph: %f] [Dis_nam: %f]"% (n_epochs, en, len(data_loader), autoencoder_loss.cpu().data.numpy(),\
-               Dnet_sph_loss.cpu().data.numpy(), Dnet_whp_loss.cpu().data.numpy(), Dnet_nam_loss.cpu().data.numpy()))
+        print ("[Epoch: %d] [Iter:%d/%d] [Autoen: %f] [Dis_wph: %f]"% (n_epochs, en, len(data_loader), autoencoder_loss.cpu().data.numpy(), Dnet_whp_loss.cpu().data.numpy()))
     
 
 # Validation function
