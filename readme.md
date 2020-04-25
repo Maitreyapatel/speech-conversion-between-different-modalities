@@ -136,7 +136,7 @@ For whisper-to-normal speech conversion, we rely on wTIMIT dataset. Please downl
 
 For MSpeC-Net related experiments we use CSTR-NAM-TIMIT dataset, which is available [here](https://homepages.inf.ed.ac.uk/jyamagis/page3/page57/page57.html). And follow below steps:
 1. Download the dataset and put the .wav files in the `dataset/data/MSpeC-Net/{Normal/Whisper/NAM}/wav`
-2. Follow the same 2nd step described above.
+2. Follow the same 2nd step described above. 
    
 # Now, do the training for WHSP2SPCH conversion:
 
@@ -190,7 +190,22 @@ Finally, we are at the last stage. We will use converted mcc and predicted F0 fe
 
 1. `./synthesis.sh`
 
-## Citation:
+
+# Let's take an overview on how to use this library for MSpeC-Net training/testing:
+
+Currently, this repository provides the necessary codes for MSpeC-Net training and testing.
+One can train MSpeC-Net model by running following python script:
+
+1. `python MSpeC-Net.py -tr -te`
+
+However, for more details on how to use different matlab scripts and feature extraction shell scripts please refer the steps shown in WHSP2SPCH conversions. 
+Righ now, we are working on it to make the final end-to-end system. Soon we will publish it. 
+
+If you are interested in contributing, please get in touch with author of the repository.
+
+
+
+# Citation:
 
 If you use this code for your research, please cite our papers.
 
