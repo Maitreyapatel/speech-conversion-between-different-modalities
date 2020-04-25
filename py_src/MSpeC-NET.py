@@ -250,7 +250,19 @@ def do_testing():
     test_folder_path=args.test_folder
 
     dirs = listdir(test_folder_path)
-    Gnet = torch.load(join(checkpoint,"gen_ws_Ep_{}.pth".format(args.test_epoch))).to(device)
+
+
+    if args.test_type == "whsp2spch":
+        enc = torch.load(join(checkpoint,"enc_whp_Ep_{}.pth".format(args.test_epoch))).to(device)
+        dec = torch.load(join(checkpoint,"dec_sph_Ep_{}.pth".format(args.test_epoch))).to(device)
+
+    if args.test_type == "nam2spch":
+        enc = torch.load(join(checkpoint,"enc_nam_Ep_{}.pth".format(args.test_epoch))).to(device)
+        dec = torch.load(join(checkpoint,"dec_sph_Ep_{}.pth".format(args.test_epoch))).to(device)
+
+    if args.test_type == "nam2whsp":
+        enc = torch.load(join(checkpoint,"enc_nam_Ep_{}.pth".format(args.test_epoch))).to(device)
+        dec = torch.load(join(checkpoint,"dec_whp_Ep_{}.pth".format(args.test_epoch))).to(device)
 
     for i in dirs:
         
@@ -260,8 +272,7 @@ def do_testing():
         a = torch.from_numpy(d)
         a = Variable(a.squeeze(0).type('torch.FloatTensor')).to(device)
         
-        Gout = Gnet(a)
-
+        Gout = dec(enc(a))
         savemat(join(save_folder,'{}.mat'.format(i[:-4])),  mdict={'foo': Gout.cpu().data.numpy()})
 
 
