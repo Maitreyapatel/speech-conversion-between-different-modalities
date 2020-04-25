@@ -43,3 +43,28 @@ class non_parallel_dataloader(Dataset):
     
     def __len__(self):
         return self.length
+
+
+class mspec_net_speech_data(Dataset):
+
+    def __init__(self, folder1, folder2, train=True):
+
+        self.path1 = folder1
+        self.path2 = folder2
+        self.train = train
+
+        self.files1 = listdir(self.path1)                               # NAM-Whisper
+        self.files2 = listdir(self.path2)                               # Whisper-Speech
+
+    def __getitem__(self, index):
+
+        a = np.random.randint(len(self.files1))
+        b = np.random.randint(len(self.files2))
+       
+        d1 = loadmat(join(self.path1, self.files1[int(a)]))             # NAM-Whisper
+        d2 = loadmat(join(self.path2, self.files2[int(b)]))             # Whisper-Speech
+
+        return np.array(d1['Feat']), np.array(d1['Clean_cent']),  np.array(d2['feat']), np.array(d2['Clean_cent'])
+
+    def __len__(self):
+        return len(self.files1)
