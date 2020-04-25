@@ -203,34 +203,39 @@ def do_training():
 
         training(train_dataloader, ep+1)
         if (ep+1)%args.checkpoint_interval==0:
-            torch.save(Gnet_ws, join(checkpoint,"gen_ws_Ep_{}.pth".format(ep+1)))
+            torch.save(enc_nam, join(checkpoint,"enc_nam_Ep_{}.pth".format(ep+1)))
+            torch.save(enc_whp, join(checkpoint,"enc_nam_Ep_{}.pth".format(ep+1)))
+            torch.save(enc_sph, join(checkpoint,"enc_nam_Ep_{}.pth".format(ep+1)))
+            torch.save(dec_nam, join(checkpoint,"enc_nam_Ep_{}.pth".format(ep+1)))
+            torch.save(dec_whp, join(checkpoint,"enc_nam_Ep_{}.pth".format(ep+1)))
+            torch.save(dec_sph, join(checkpoint,"enc_nam_Ep_{}.pth".format(ep+1)))
 
 
         if (ep+1)%args.validation_interval==0:
             dl,gl = validating(val_dataloader)
             
-            print("D_loss: " + str(dl) + " G_loss: " + str(gl))
+            print("AE_loss: " + str(dl) + " D_loss: " + str(gl))
             
             dl_arr.append(dl)
             gl_arr.append(gl)
             
             if ep == 0:
-                gplot = viz.line(Y=np.array([gl]), X=np.array([ep]), opts=dict(title='Generator'))
-                dplot = viz.line(Y=np.array([dl]), X=np.array([ep]), opts=dict(title='Discriminator'))
+                gplot = viz.line(Y=np.array([gl]), X=np.array([ep]), opts=dict(title='Discriminator'))
+                dplot = viz.line(Y=np.array([dl]), X=np.array([ep]), opts=dict(title='Auto-Encoders'))
             else:
                 viz.line(Y=np.array([gl]), X=np.array([ep]), win=gplot, update='append')
                 viz.line(Y=np.array([dl]), X=np.array([ep]), win=dplot, update='append')
 
             
-    savemat(checkpoint+"/"+str('discriminator_loss.mat'),  mdict={'foo': dl_arr})
-    savemat(checkpoint+"/"+str('generator_loss.mat'),  mdict={'foo': gl_arr})
+    savemat(checkpoint+"/"+str('autoencoders_loss.mat'),  mdict={'foo': dl_arr})
+    savemat(checkpoint+"/"+str('discriminator_loss.mat'),  mdict={'foo': gl_arr})
 
     plt.figure(1)
     plt.plot(dl_arr)
-    plt.savefig(checkpoint+'/discriminator_loss.png')
+    plt.savefig(checkpoint+'/autoencoders_loss.png')
     plt.figure(2)
     plt.plot(gl_arr)
-    plt.savefig(checkpoint+'/generator_loss.png')
+    plt.savefig(checkpoint+'/discriminator_loss.png')
 
 
 
