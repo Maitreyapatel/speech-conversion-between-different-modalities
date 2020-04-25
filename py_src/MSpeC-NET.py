@@ -34,99 +34,89 @@ import argparse
 
 # Training Function
 def training(data_loader, n_epochs):
-    Gnet_ws.train()
-    Gnet_sw.train()
-    Dnet_w.train()
-    Dnet_s.train()
-    
-    for en, (a, b) in enumerate(data_loader):
-        a = Variable(a.squeeze(0).type(torch.FloatTensor)).to(device)
-        b = Variable(b.squeeze(0).type(torch.FloatTensor)).to(device)
+    enc_nam.train()
+    enc_whp.train()
+    enc_sph.train()
 
-        valid = Variable(Tensor(a.shape[0], 1).fill_(1.0), requires_grad=False).to(device)
-        fake = Variable(Tensor(a.shape[0], 1).fill_(0.0), requires_grad=False).to(device)
-        
-        ###### Generators W2S and S2W ######
-        optimizer_G.zero_grad()
-        
-        # Identity loss
-        # G_W2S(S) should equal S if real S is fed
-        same_s = Gnet_ws(b)
-        loss_identity_s = criterion_identity(same_s, b)*5.0
-        # G_S2W(W) should equal W if real W is fed
-        same_w = Gnet_sw(a)
-        loss_identity_w = criterion_identity(same_w, a)*5.0
+    dec_nam.train()
+    dec_whp.train()
+    dec_sph.train()
 
-        # GAN loss
-        Gout_ws = Gnet_ws(a)
-        loss_GAN_W2S = criterion_GAN(Dnet_s(Gout_ws), valid)
-        
-        Gout_sw = Gnet_sw(b)
-        loss_GAN_S2W = criterion_GAN(Dnet_w(Gout_sw), valid)
-        
-        # Cycle loss
-        recovered_W = Gnet_sw(Gout_ws)
-        loss_cycle_WSW = criterion_cycle(recovered_W, a)*10.0
-        
-        recovered_S = Gnet_ws(Gout_sw)
-        loss_cycle_SWS = criterion_cycle(recovered_S, b)*10.0
-        
-        # Total loss
-        loss_G =  loss_identity_w + loss_identity_s + loss_GAN_W2S + loss_GAN_S2W + loss_cycle_WSW + loss_cycle_SWS
-        loss_G.backward()
-        
-        optimizer_G.step()
+    Dnet_whp.train()
 
-        
-        
-#        Gout = Gnet(a)
-#        G_loss = adversarial_loss(Dnet(Gout), valid) + mmse_loss(Gout, b)*10
-#
-#        G_loss.backward()
-#        optimizer_G.step()
-        
-        
-        ###### Discriminator W ######
+    for en, (a, b, c, d) in enumerate(data_loader):
+
+        a = Variable(a.squeeze(0).type(torch.FloatTensor)).cuda()
+        b = Variable(b.squeeze(0).type(torch.FloatTensor)).cuda()
+        c = Variable(c.squeeze(0).type(torch.FloatTensor)).cuda()
+        d = Variable(d.squeeze(0).type(torch.FloatTensor)).cuda()
+
+        valid = Variable(Tensor(a.shape[0], 1).fill_(1.0), requires_grad=False).cuda()
+        fake = Variable(Tensor(a.shape[0], 1).fill_(0.0), requires_grad=False).cuda()
+
+        ''' a - NAM | b - WHISPER-NAM | c - WHISPER-SPEECH | d - SPEECH, Here, WHISPER-NAM represents Whisper speech corresponding to NAM speech and 
+        WHISPER-SPEECH represents Whisper speech  corresponding to Normal Speech'''
+
+        ############# Generator ##############
+
+        optimizer_enc.zero_grad()
+        optimizer_dec.zero_grad()
+
+        enc_n = enc_nam(a)
+        enc_w_n = enc_whp(b)
+        enc_w_s = enc_whp(c)
+        enc_s = enc_sph(d)
+
+        a01 = dec_nam(enc_n)
+        a02 = dec_nam(enc_w_n)
+
+        bn_01 = dec_whp(enc_w_n)
+        bn_02 = dec_whp(enc_n)
+
+        bs_01 = dec_whp(enc_w_s)
+        bs_02 = dec_whp(enc_s)
+
+        c01 = dec_sph(enc_s)
+        c02 = dec_sph(enc_w_s)
+
+        # Losses for nam-whp
+        loss1 = (adversarial_loss(a01,a) + adversarial_loss(a02,a))/2
+        loss2 = (adversarial_loss(bn_01,b) + adversarial_loss(bn_02,b))/2
+
+        # Losses for whp-sph
+        loss3 = (adversarial_loss(bs_01,b) + adversarial_loss(bs_02,b))/2
+        loss4 = (adversarial_loss(c01,c) + adversarial_loss(c02,c))/2
+
+        loss5 = (adversarial_loss(enc_n, enc_w_n) + adversarial_loss(enc_w_s, enc_s))/2
+
+        fake_w = (bce(Dnet_whp(bn_02.detach()), valid) + bce(Dnet_whp(bs_02.detach()), valid))/2
+
+        autoencoder_loss = (loss1*10 + loss2*10 + loss3 + loss4 + loss5) + fake_w
+
+        autoencoder_loss.backward(retain_graph=True)
+
+        optimizer_enc.step()
+        optimizer_dec.step()
+
+        ############# Discriminator ###############
+
         optimizer_D_w.zero_grad()
 
-        # Real loss
-        loss_D_real = criterion_GAN(Dnet_w(a), valid)
-        
-        # Fake loss
-        loss_D_fake = criterion_GAN(Dnet_w(Gout_sw.detach()), fake)
-        
-        # Total loss
-        loss_D_w = (loss_D_real + loss_D_fake)*0.5
-        loss_D_w.backward()
-        
+        loss_D_real_n = bce(Dnet_nam(a01), valid) 
+        loss_D_fake_n = bce(Dnet_nam(a02), fake) 
+
+        loss_D_real_w = (bce(Dnet_whp(bn_01.detach()), valid) + bce(Dnet_whp(bs_01.detach()), valid))/2
+        loss_D_fake_w = (bce(Dnet_whp(bn_02.detach()), fake) + bce(Dnet_whp(bs_02.detach()), fake))/2
+
+        loss_D_real_s = bce(Dnet_sph(c01.detach()), valid)
+        loss_D_fake_s = bce(Dnet_sph(c02.detach()), fake)
+
+        Dnet_whp_loss = (loss_D_real_w + loss_D_fake_w)/2
+        Dnet_whp_loss.backward()
         optimizer_D_w.step()
-        
-        ###################################
-        
-        ###### Discriminator B ######
-        optimizer_D_s.zero_grad()
-        
-        # Real loss
-        loss_D_real = criterion_GAN(Dnet_s(b), valid)
-        
-        # Fake loss
-        loss_D_fake = criterion_GAN(Dnet_s(Gout_ws.detach()), fake)
-        
-        # Total loss
-        loss_D_s = (loss_D_real + loss_D_fake)*0.5
-        loss_D_s.backward()
-        
-        optimizer_D_s.step()
-        ###################################
-        
-        
 
-        # D_loss = 0
-
-        #D_running_loss = 0
-        #D_running_loss += D_loss.item()
-        
-        print ("[Epoch: %d] [Iter: %d/%d] [D_S loss: %f] [D_W loss: %f] [G loss: %f]" % (n_epochs, en, len(data_loader), loss_D_s, loss_D_w, loss_G.cpu().data.numpy()))
+        print ("[Epoch: %d] [Iter:%d/%d] [Autoen: %f] [Dis_sph: %f] [Dis_wph: %f] [Dis_nam: %f]"% (n_epochs, en, len(data_loader), autoencoder_loss.cpu().data.numpy(),\
+               Dnet_sph_loss.cpu().data.numpy(), Dnet_whp_loss.cpu().data.numpy(), Dnet_nam_loss.cpu().data.numpy()))
     
 
 # Validation function
