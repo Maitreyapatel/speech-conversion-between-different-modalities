@@ -3,8 +3,8 @@ ____
 
 ```diff
 - Note: This reposatory has been updated with our latest paper "MSpeC-Net : Multi-Domain Speech Conversion Network".
-- Demo link: [Click Here](https://maitreyapatel.github.io/mspec-net-demo/)
 ```
+- Demo link: [Click Here](https://maitreyapatel.github.io/mspec-net-demo/)
 
 ### Improving the intelligibility of Non-Audible-Murmur and Whisper speech via following different types of conversations:
 1. NAM-to-WHiSPer (NAM2WHSP)
