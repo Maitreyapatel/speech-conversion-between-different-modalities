@@ -2,7 +2,7 @@
 ____
 
 ```diff
-- Note: This reposatory has been updated with our latest paper "MSpeC-Net : Multi-Domain Speech Conversion Network".
+- Note: This repository has been updated with our latest paper "MSpeC-Net : Multi-Domain Speech Conversion Network".
 ```
 - Demo link: [Click Here](https://maitreyapatel.github.io/mspec-net-demo/)
 
